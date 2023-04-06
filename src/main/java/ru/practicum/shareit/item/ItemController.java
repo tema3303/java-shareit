@@ -78,7 +78,7 @@ public class ItemController {
 
     private void checkUser(Long userId) {
         if (userId == null) {
-            throw new ValidationException("Пользователь не указан");
+            throw new NotFoundException("Пользователь не указан");
         } else if (userService.getUserById(userId) == null) {
             throw new NotFoundException("Указанный пользователь не сущетсвует");
         }
