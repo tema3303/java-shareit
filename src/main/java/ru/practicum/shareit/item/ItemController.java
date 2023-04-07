@@ -26,9 +26,10 @@ public class ItemController {
 
     private final ItemService itemService;
     private final UserService userService;
+    private final String USER_ID = "X-Sharer-User-Id";
 
     @PostMapping
-    public ItemDto addItem(@RequestHeader("X-Sharer-User-Id") Long userId, @Valid @RequestBody ItemDto itemDto) {
+    public ItemDto addItem(@RequestHeader(value = USER_ID) Long userId, @Valid @RequestBody ItemDto itemDto) {
         log.info("Получен запрос 'POST /items'");
         checkUser(userId);
         User user = userService.getUserById(userId);
@@ -37,7 +38,7 @@ public class ItemController {
     }
 
     @PatchMapping("/{itemId}")
-    public ItemDto updateItem(@RequestHeader("X-Sharer-User-Id") Long userId, @RequestBody ItemDto itemDto,
+    public ItemDto updateItem(@RequestHeader(value = USER_ID) Long userId, @RequestBody ItemDto itemDto,
                               @PathVariable long itemId) {
         log.info(String.format("Получен запрос 'PATCH /items/%d'", itemId));
         checkUser(userId);
@@ -50,14 +51,14 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    public ItemDto getItemById(@RequestHeader("X-Sharer-User-Id") Long userId, @PathVariable long itemId) {
+    public ItemDto getItemById(@RequestHeader(value = USER_ID) Long userId, @PathVariable long itemId) {
         log.info(String.format("Получен запрос 'GET /items/%d'", itemId));
         checkUser(userId);
         return ItemMapper.toItemDto(itemService.getItemById(itemId));
     }
 
     @GetMapping
-    public Collection<ItemDto> getAllItem(@RequestHeader("X-Sharer-User-Id") Long userId) {
+    public Collection<ItemDto> getAllItem(@RequestHeader(value = USER_ID) Long userId) {
         log.info(String.format("Получен запрос 'GET /items' от пользователя %d'", userId));
         checkUser(userId);
         Collection<Item> allItems = itemService.getAllItem(userId);
@@ -67,7 +68,7 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public Collection<ItemDto> searchItem(@RequestHeader("X-Sharer-User-Id") Long userId, @RequestParam(name = "text") String text) {
+    public Collection<ItemDto> searchItem(@RequestHeader(value = USER_ID) Long userId, @RequestParam(name = "text") String text) {
         log.info("Получен запрос 'GET /items/search/?text='" + text);
         checkUser(userId);
         return itemService.searchItem(text).stream()
