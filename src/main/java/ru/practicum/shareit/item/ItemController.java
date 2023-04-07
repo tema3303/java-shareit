@@ -26,7 +26,7 @@ public class ItemController {
 
     private final ItemService itemService;
     private final UserService userService;
-    private final String USER_ID = "X-Sharer-User-Id";
+    private static final String USER_ID = "X-Sharer-User-Id";
 
     @PostMapping
     public ItemDto addItem(@RequestHeader(value = USER_ID) Long userId, @Valid @RequestBody ItemDto itemDto) {
