@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.constans.State;
 import ru.practicum.shareit.exceptions.NotFoundException;
-import ru.practicum.shareit.item.model.dto.ItemDto;
 import ru.practicum.shareit.user.service.UserService;
 
 import javax.validation.Valid;
@@ -44,7 +43,6 @@ public class BookingController {
     public Collection<Booking> getAllBooking(@RequestHeader(value = USER_ID) Long userId, @RequestParam(defaultValue = "ALL") State state) {
         return bookingService.getAllBooking(userId, state);
     }
-
 
     private void checkUser(Long userId) {
         if (userId == null) {
