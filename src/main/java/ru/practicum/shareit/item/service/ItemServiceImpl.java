@@ -12,19 +12,18 @@ import java.util.Collections;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
 
-    @Transactional
     @Override
     public Item addItem(Item item) {
         return itemRepository.save(item);
     }
 
     @Override
+    @Transactional
     public Item updateItem(Item item, long itemId) {
-        Item updateItem = getItemById(itemId);
+        Item updateItem = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundException("Предмета не существует"));
         //updateItem.setId(itemId);
         if (item.getOwner() != null) {
             updateItem.setOwner(item.getOwner());
@@ -55,6 +54,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<Item> searchItem(String text) {
         if (text.isBlank()) {
             return Collections.emptyList();
