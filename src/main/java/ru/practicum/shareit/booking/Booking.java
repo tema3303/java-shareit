@@ -32,9 +32,11 @@ public class Booking {
     private LocalDate end;
     @ManyToOne(optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "item_id", nullable = false)
     private Item item;
     @ManyToOne(optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "booker_id", nullable = false)
     private User booker; //кто бронирует
     @Column(length = 10, nullable = false)
     @Enumerated(EnumType.STRING)
