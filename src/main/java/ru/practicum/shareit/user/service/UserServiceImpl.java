@@ -40,10 +40,10 @@ public class UserServiceImpl implements UserService {
             checkEmail(user);
         }
         User updateUser = getUserById(userId);
-        if(user.getName() != null){
+        if (user.getName() != null) {
             updateUser.setName(user.getName());
         }
-        if(user.getEmail() != null){
+        if (user.getEmail() != null) {
             updateUser.setEmail(user.getEmail());
         }
         return userRepository.save(updateUser);
