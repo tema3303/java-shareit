@@ -9,7 +9,7 @@ public interface ItemService {
 
     Item updateItem(Item item, long itemId);
 
-    Item getItemById(long itemId);
+    Item getItemById(long id);
 
     Collection<Item> getAllItem(long userId);
 

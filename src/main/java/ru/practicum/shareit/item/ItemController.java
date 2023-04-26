@@ -51,7 +51,7 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    public ItemDto getItemById(@RequestHeader(value = USER_ID) Long userId, @PathVariable long itemId) {
+    public ItemDto getItemById(@RequestHeader(value = USER_ID) Long userId, @PathVariable Long itemId) {
         log.info(String.format("Получен запрос 'GET /items/%d'", itemId));
         checkUser(userId);
         return ItemMapper.toItemDto(itemService.getItemById(itemId));

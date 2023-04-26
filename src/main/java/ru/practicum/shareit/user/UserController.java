@@ -13,7 +13,7 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 /**
- * TODO Sprint add-controllers.
+ * TODO Sprint add-bookings.
  */
 @RestController
 @RequestMapping(path = "/users")
