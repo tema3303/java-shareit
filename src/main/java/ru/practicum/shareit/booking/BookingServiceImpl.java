@@ -13,7 +13,7 @@ import java.util.Collection;
 
 @Service
 @RequiredArgsConstructor
-public class BookingServiceImpl implements BookingService{
+public class BookingServiceImpl implements BookingService {
 
     BookingRepository bookingRepository;
 
@@ -24,12 +24,12 @@ public class BookingServiceImpl implements BookingService{
 
     @Override
     public Booking confirmBooking(Boolean approve, Long id, Long userId) {
-        Booking booking = getBookingById(id,userId);
+        Booking booking = getBookingById(id, userId);
         Item item = booking.getItem();
-        if(item.getOwner().getId() != userId){
+        if (item.getOwner().getId() != userId) {
             throw new ValidationException("Данный пользователь не хозяин вещи");
         }
-        if(approve == true){
+        if (approve == true) {
             booking.setStatus(Status.APPROVED);
         } else {
             booking.setStatus(Status.REJECTED);
@@ -45,15 +45,15 @@ public class BookingServiceImpl implements BookingService{
     @Override
     public Collection<Booking> getAllBooking(Long userId, State state) {
         Collection<Booking> bookings = null;
-        if(state == State.ALL){
+        if (state == State.ALL) {
             bookings = bookingRepository.findAllByBookerIdOrderByStart(userId);
         } else if (state == State.WAITING) {
             bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStart(userId, state);
-        } else if(state == State.REJECTED){
+        } else if (state == State.REJECTED) {
             bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStart(userId, state);
         } else if (state == State.CURRENT) {
-            bookings = bookingRepository.findAllByBookerIdAndStartAfterAndEndBefore(userId,LocalDateTime.now(),LocalDateTime.now());
-        } else if(state == State.FUTURE){
+            bookings = bookingRepository.findAllByBookerIdAndStartAfterAndEndBefore(userId, LocalDateTime.now(), LocalDateTime.now());
+        } else if (state == State.FUTURE) {
             bookings = bookingRepository.findAllByBookerIdAndStartAfterOrderByStart(userId, LocalDateTime.now());
         } else if (state == State.PAST) {
             bookings = bookingRepository.findAllByBookerIdAndEndBeforeOrderByStart(userId, LocalDateTime.now());

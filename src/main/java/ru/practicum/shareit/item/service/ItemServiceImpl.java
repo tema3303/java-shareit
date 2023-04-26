@@ -26,7 +26,7 @@ public class ItemServiceImpl implements ItemService {
     public Item updateItem(Item item, long itemId) {
         Item updateItem = getItemById(itemId);
         //updateItem.setId(itemId);
-        if (item.getOwner() != null){
+        if (item.getOwner() != null) {
             updateItem.setOwner(item.getOwner());
         }
         if (item.getName() != null) {
