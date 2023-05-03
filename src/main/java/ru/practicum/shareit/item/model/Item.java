@@ -33,6 +33,6 @@ public class Item {
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
     @OneToOne
-    @JoinColumn(name = "request_id", nullable = false)
+    //@JoinColumn(name = "request_id", nullable = false)
     private ItemRequest request;//ссылка на запрос пользователя о создании
 }

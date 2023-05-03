@@ -4,7 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.exceptions.NotFoundException;
+import ru.practicum.shareit.item.comment.CommentDto;
+import ru.practicum.shareit.item.comment.CommentOutDto;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.model.dto.ItemBookingDto;
 import ru.practicum.shareit.item.model.dto.ItemDto;
 import ru.practicum.shareit.item.model.dto.ItemMapper;
 import ru.practicum.shareit.item.service.ItemService;
@@ -42,29 +45,23 @@ public class ItemController {
                               @PathVariable long itemId) {
         log.info(String.format("Получен запрос 'PATCH /items/%d'", itemId));
         checkUser(userId);
-        if (itemService.getItemById(itemId).getOwner().getId() != userId) {
-            throw new NotFoundException("Пользователь не является владельцем этой вещи");
-        }
         User user = userService.getUserById(userId);
         Item item = ItemMapper.toItem(itemDto, user);
         return ItemMapper.toItemDto(itemService.updateItem(item, itemId));
     }
 
     @GetMapping("/{itemId}")
-    public ItemDto getItemById(@RequestHeader(value = USER_ID) Long userId, @PathVariable Long itemId) {
+    public ItemBookingDto getItemById(@RequestHeader(value = USER_ID) Long userId, @PathVariable Long itemId) {
         log.info(String.format("Получен запрос 'GET /items/%d'", itemId));
         checkUser(userId);
-        return ItemMapper.toItemDto(itemService.getItemById(itemId));
+        return itemService.getItemById(itemId, userId);
     }
 
     @GetMapping
-    public Collection<ItemDto> getAllItem(@RequestHeader(value = USER_ID) Long userId) {
+    public Collection<ItemBookingDto> getAllItem(@RequestHeader(value = USER_ID) Long userId) {
         log.info(String.format("Получен запрос 'GET /items' от пользователя %d'", userId));
         checkUser(userId);
-        Collection<Item> allItems = itemService.getAllItem(userId);
-        return allItems.stream()
-                .map(ItemMapper::toItemDto)
-                .collect(Collectors.toList());
+        return itemService.getAllItem(userId);
     }
 
     @GetMapping("/search")
@@ -74,6 +71,12 @@ public class ItemController {
         return itemService.searchItem(text).stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentDto addComment(
+            @RequestHeader(value = USER_ID) Long userId, @PathVariable Long itemId, @RequestBody CommentOutDto comment) {
+        return itemService.addComment(userId, itemId, comment);
     }
 
     private void checkUser(Long userId) {

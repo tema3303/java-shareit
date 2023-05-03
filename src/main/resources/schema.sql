@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS comments
     text      VARCHAR(1000)                           NOT NULL,
     item_id   BIGINT                                  NOT NULL,
     author_id BIGINT                                  NOT NULL,
+    created   TIMESTAMP WITHOUT TIME ZONE             NOT NULL,
 
     CONSTRAINT pk_comments PRIMARY KEY (id),
     CONSTRAINT FK_COMMENTS_ON_AUTHOR FOREIGN KEY (author_id) REFERENCES users (id) ON DELETE CASCADE,
