@@ -4,13 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.model.dto.UserDto;
-import ru.practicum.shareit.user.model.dto.UserMapper;
-import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
 import javax.validation.Valid;
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 /**
  * TODO Sprint add-bookings.
@@ -26,30 +23,25 @@ public class UserController {
     @GetMapping
     public Collection<UserDto> getAllUsers() {
         log.info("Получен запрос 'GET /users'");
-        Collection<User> allUsers = userService.getAllUsers();
-        return allUsers.stream()
-                .map(UserMapper::toUserDto)
-                .collect(Collectors.toList());
+        return userService.getAllUsers();
     }
 
     @PostMapping
     public UserDto createUser(@Valid @RequestBody UserDto userDto) {
         log.info("Получен запрос 'POST /users'");
-        User user = UserMapper.toUser(userDto);
-        return UserMapper.toUserDto(userService.saveUser(user));
+        return userService.saveUser(userDto);
     }
 
     @PatchMapping("/{userId}")
     public UserDto updateUser(@RequestBody UserDto userDto, @PathVariable Long userId) {
         log.info(String.format("Получен запрос 'PATCH /users/{userId}'"), userId);
-        User user = UserMapper.toUser(userDto);
-        return UserMapper.toUserDto(userService.updateUser(user, userId));
+        return userService.updateUser(userDto, userId);
     }
 
     @GetMapping("/{userId}")
     public UserDto getUserById(@PathVariable long userId) {
         log.info(String.format("Получен запрос 'GET /users/{userId}'"), userId);
-        return UserMapper.toUserDto(userService.getUserById(userId));
+        return userService.getUserById(userId);
     }
 
     @DeleteMapping("/{userId}")
