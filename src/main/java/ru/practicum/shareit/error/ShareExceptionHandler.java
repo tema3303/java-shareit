@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.shareit.exceptions.NotFoundException;
+import ru.practicum.shareit.exceptions.UnsupportedException;
 import ru.practicum.shareit.exceptions.ValidationException;
 
 @RestControllerAdvice
@@ -17,6 +18,15 @@ public class ShareExceptionHandler {
         log.info("Нет данных.");
         return new ErrorResponse(
                 e.getMessage(), "Нет данных."
+        );
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleUnsupportedException(final UnsupportedException e) {
+        log.info("Unknown state: UNSUPPORTED_STATUS");
+        return new ErrorResponse(
+                e.getMessage(), "Unknown state: UNSUPPORTED_STATUS"
         );
     }
 
