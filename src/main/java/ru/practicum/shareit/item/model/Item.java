@@ -1,28 +1,38 @@
 package ru.practicum.shareit.item.model;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import javax.persistence.*;
 
 /**
- * TODO Sprint add-controllers.
+ * TODO Sprint add-bookings.
  */
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString
+@EqualsAndHashCode
 @Builder
+@Entity
+@Table(name = "items")
 public class Item {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private long id;
-    @NotBlank
+    @Column(length = 20, nullable = false)
     private String name;
-    @NotBlank
-    @Size(max = 50)
+    @Column(length = 200, nullable = false)
     private String description;
-    @NotNull
+    @Column(nullable = false)
     private Boolean available;
+    @ManyToOne
+    @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
+    @OneToOne
+    //@JoinColumn(name = "request_id", nullable = false)
     private ItemRequest request;//ссылка на запрос пользователя о создании
 }

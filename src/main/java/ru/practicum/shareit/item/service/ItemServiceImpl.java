@@ -2,42 +2,157 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.storage.BookingRepository;
+import ru.practicum.shareit.constans.Status;
+import ru.practicum.shareit.exceptions.NotFoundException;
+import ru.practicum.shareit.exceptions.ValidationException;
+import ru.practicum.shareit.item.comment.*;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.model.dto.ItemBookingDto;
+import ru.practicum.shareit.item.model.dto.ItemMapper;
 import ru.practicum.shareit.item.storage.ItemRepository;
+import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.storage.UserRepository;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
+    private final BookingRepository bookingRepository;
+    private final CommentRepository commentRepository;
+    private final UserRepository userRepository;
 
     @Override
+    @Transactional
     public Item addItem(Item item) {
-        return itemRepository.addItem(item);
+        return itemRepository.save(item);
     }
 
     @Override
+    @Transactional
     public Item updateItem(Item item, long itemId) {
-        return itemRepository.updateItem(item, itemId);
+        Item updateItem = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundException("Предмета не существует"));
+        if (item.getOwner() != null) {
+            updateItem.setOwner(item.getOwner());
+        }
+        if (item.getName() != null) {
+            updateItem.setName(item.getName());
+        }
+        if (item.getDescription() != null) {
+            updateItem.setDescription(item.getDescription());
+        }
+        if (item.getAvailable() != null) {
+            updateItem.setAvailable(item.getAvailable());
+        }
+        return itemRepository.save(updateItem);
     }
 
     @Override
-    public Item getItemById(long itemId) {
-        return itemRepository.getItemById(itemId);
+    @Transactional(readOnly = true)
+    public ItemBookingDto getItemById(long id, long userId) {
+        Item item = itemRepository.findById(id).orElseThrow(() -> new NotFoundException("Предмета не существует"));
+        Collection<Booking> bookings = bookingRepository.findAllByItem_IdAndItem_Owner_IdAndStatusNotOrderByStartAsc(id, userId, Status.REJECTED);
+        List<CommentDto> comments = commentRepository
+                .findAllByItem_IdOrderByCreated(id)
+                .stream()
+                .map(CommentMapper::toDto)
+                .collect(Collectors.toList());
+        return ItemMapper.toItemBookingDto(item, comments, previousBookingInSorted(bookings), nextBookingInSorted(bookings));
     }
 
     @Override
-    public Collection<Item> getAllItem(long userId) {
-        return itemRepository.getAllItem(userId);
+    @Transactional(readOnly = true)
+    public Collection<ItemBookingDto> getAllItem(long userId) {
+
+        Collection<Item> items = itemRepository.findAllByOwnerIdOrderById(userId);
+        Set<Long> itemsIds = items.stream().map(Item::getId).collect(Collectors.toSet());
+        Map<Long, List<Comment>> comments = commentRepository
+                .findAllByItem_IdInOrderByItem_Id(itemsIds)
+                .stream()
+                .collect(Collectors.groupingBy(it -> it.getItem().getId()));
+        Map<Long, List<Booking>> itemIdToBookings = bookingRepository
+                .findAllByItem_IdInOrderByStartAsc(itemsIds)
+                .stream()
+                .collect(Collectors.groupingBy(it -> it.getItem().getId()));
+
+        List<ItemBookingDto> result = new ArrayList<>();
+        for (Item item : items) {
+            ItemBookingDto itemBookingDto = ItemMapper.toItemBookingDto(
+                    item,
+                    comments.getOrDefault(item.getId(), List.of()).stream().map(CommentMapper::toDto).collect(Collectors.toList()),
+                    previousBookingInSorted(itemIdToBookings.getOrDefault(item.getId(), List.of())),
+                    nextBookingInSorted(itemIdToBookings.getOrDefault(item.getId(), List.of()))
+            );
+            result.add(itemBookingDto);
+            ;
+        }
+        return result;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<Item> searchItem(String text) {
         if (text.isBlank()) {
             return Collections.emptyList();
         }
-        return itemRepository.searchItem(text);
+        return itemRepository.search(text);
+    }
+
+    @Override
+    public CommentDto addComment(Long userId, Long itemId, CommentOutDto commentOutDto) {
+        if (commentOutDto.getText().isEmpty()) {
+            throw new ValidationException("Комментарий пустой");
+        }
+        User author = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователя не существует"));
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Предмета не существует"));
+        Collection<Booking> bookingList = bookingRepository
+                .findAllByItem_IdAndBooker_IdAndStatusNotAndStartBefore(itemId, userId, Status.REJECTED, LocalDateTime.now());
+        if (bookingList.isEmpty())
+            throw new ValidationException("Пользователь не брал данный прибор и не может оставить комментарий");
+        Comment comment = Comment.builder()
+                .text(commentOutDto.getText())
+                .author(author)
+                .item(item)
+                .created(LocalDateTime.now())
+                .build();
+        return CommentMapper.toDto(commentRepository.save(comment));
+    }
+
+    private Booking previousBookingInSorted(Collection<Booking> bookings) {
+        if (bookings == null || bookings.isEmpty()) {
+            return null;
+        }
+        LocalDateTime now = LocalDateTime.now();
+        Booking prev = null;
+        Booking cur = null;
+        for (Booking booking : bookings) {
+            cur = booking;
+            if (prev != null && (cur.getStart().isAfter(now))) {
+                return prev;
+            }
+            prev = cur;
+        }
+        return cur;
+    }
+
+    private Booking nextBookingInSorted(Collection<Booking> bookings) {
+        if (bookings == null || bookings.isEmpty()) {
+            return null;
+        }
+        LocalDateTime now = LocalDateTime.now();
+        for (Booking cur : bookings) {
+            if (cur.getStart().isAfter(now)) {
+                return cur;
+            }
+        }
+        return null;
     }
 }
