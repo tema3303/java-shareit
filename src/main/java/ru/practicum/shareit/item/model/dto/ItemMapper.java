@@ -44,4 +44,16 @@ public final class ItemMapper {
                 .comments(comments)
                 .build();
     }
+
+    public static ItemBookingDto toItemBookingDto(Item item, List<CommentDto> comments, Booking last, Booking next) {
+        return ItemBookingDto.builder()
+                .id(item.getId())
+                .name(item.getName())
+                .description(item.getDescription())
+                .available(item.getAvailable())
+                .lastBooking(last != null ? new ItemBookingDto.BookingDto(last.getId(), last.getBooker().getId()) : null)
+                .nextBooking(next != null ? new ItemBookingDto.BookingDto(next.getId(), next.getBooker().getId()) : null)
+                .comments(comments)
+                .build();
+    }
 }
