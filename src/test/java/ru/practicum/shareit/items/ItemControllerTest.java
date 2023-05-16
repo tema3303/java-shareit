@@ -121,7 +121,6 @@ public class ItemControllerTest {
                 .thenReturn(itemBookingDto);
         mvc.perform(get("/items/2")
                         .header("X-Sharer-User-Id", 1)
-                        .content(mapper.writeValueAsString(itemBookingDto))
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))

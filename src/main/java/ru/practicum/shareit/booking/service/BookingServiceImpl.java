@@ -19,6 +19,7 @@ import ru.practicum.shareit.exceptions.ValidationException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.ItemRepository;
 import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.service.UserService;
 import ru.practicum.shareit.user.storage.UserRepository;
 
 import java.time.LocalDateTime;
@@ -33,6 +34,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final UserService userService;
 
     @Override
     public BookingDto saveBooking(BookingDtoIn booking, Long userId) {
@@ -72,6 +74,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional(readOnly = true)
     public BookingDto getBookingById(Long id, Long userId) {
+        checkUser(userId);
         Booking booking = bookingRepository.findById(id).orElseThrow(() -> new NotFoundException("Нет данных о бронировании"));
         if (booking.getItem().getOwner().getId() != userId && booking.getBooker().getId() != userId) {
             throw new NotFoundException("Данный пользователь не обладает доступом к просмотру");
@@ -82,6 +85,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional(readOnly = true)
     public Collection<BookingDto> getAllBooking(Long userId, State state, Integer from, Integer size) {
+        checkUser(userId);
         Collection<Booking> bookings;
         if (from != null && size != null) {
             if (from < 0 || size < 0) {
@@ -102,6 +106,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional(readOnly = true)
     public Collection<BookingDto> getAllBookingForItems(Long userId, State state, Integer from, Integer size) {
+        checkUser(userId);
         Collection<Booking> bookings;
         if (from != null && size != null) {
             if (from < 0 || size < 0) {
@@ -120,6 +125,7 @@ public class BookingServiceImpl implements BookingService {
 
 
     private Collection<Booking> getAllBookingWithPag(Long userId, State state, Pageable pagination) {
+        checkUser(userId);
         LocalDateTime time = LocalDateTime.now();
         Page<Booking> bookings;
         switch (state) {
@@ -149,6 +155,7 @@ public class BookingServiceImpl implements BookingService {
 
 
     private Collection<Booking> getAllBookingWithoutPag(Long userId, State state) {
+        checkUser(userId);
         Collection<Booking> bookings;
         LocalDateTime time = LocalDateTime.now();
         switch (state) {
@@ -177,6 +184,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private Collection<Booking> getAllBookingForItemsWithPag(Long userId, State state, Pageable pagination) {
+        checkUser(userId);
         LocalDateTime time = LocalDateTime.now();
         Page<Booking> bookings;
         switch (state) {
@@ -205,6 +213,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private Collection<Booking> getAllBookingForItemsWithoutPag(Long userId, State state) {
+        checkUser(userId);
         LocalDateTime time = LocalDateTime.now();
         Collection<Booking> bookings;
         switch (state) {
@@ -230,5 +239,13 @@ public class BookingServiceImpl implements BookingService {
                 throw new UnsupportedException("Unknown state: UNSUPPORTED_STATUS");
         }
         return bookings;
+    }
+
+    private void checkUser(Long userId) {
+        if (userId == null) {
+            throw new NotFoundException("Пользователь не указан");
+        } else if (userRepository.findById(userId) == null) {
+            throw new NotFoundException("Указанный пользователь не сущетсвует");
+        }
     }
 }
