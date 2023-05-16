@@ -117,7 +117,7 @@ public class BookingServiceTest {
         when(bookingRepository.findById(booking.getId())).thenReturn(Optional.ofNullable(booking));
 
         NotFoundException exception = assertThrows(NotFoundException.class, () ->
-                bookingService.confirmBooking(true, booking.getId(),otherUser.getId()));
+                bookingService.confirmBooking(true, booking.getId(), otherUser.getId()));
         assertEquals("Данный пользователь не хозяин вещи", exception.getMessage());
         assertEquals(Status.WAITING, booking.getStatus());
     }
@@ -149,45 +149,45 @@ public class BookingServiceTest {
         when(bookingRepository.findAllByBookerIdOrderByStartDesc(otherUser.getId())).thenReturn(List.of(booking));
 
         Collection<BookingDto> bookingTest = bookingService.getAllBooking(
-                otherUser.getId(), State.ALL,null,null);
+                otherUser.getId(), State.ALL, null, null);
         assertEquals(1, bookingTest.size());
     }
 
     @Test
     void getAllBookingWithStateFuture() {
         when(userRepository.findById(otherUser.getId())).thenReturn(Optional.of(otherUser));
-        when(bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(otherUser.getId(),LocalDateTime.now())).thenReturn(List.of(booking));
+        when(bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(otherUser.getId(), LocalDateTime.now())).thenReturn(List.of(booking));
 
         Collection<BookingDto> bookingTest = bookingService.getAllBooking(
-                otherUser.getId(), State.FUTURE,null,null);
+                otherUser.getId(), State.FUTURE, null, null);
         assertEquals(1, bookingTest.size());
     }
 
     @Test
     void getAllBookingForItemsWithoutPag() {
         List<Booking> allBooking = List.of(
-       Booking.builder()
-                .id(2L)
-                .start(LocalDateTime.now().plusDays(10))
-                .end(LocalDateTime.now().plusDays(20))
-                .item(item)
-                .booker(otherUser)
-                .status(Status.APPROVED)
-                .build(),
-        Booking.builder()
-                .id(3L)
-                .start(LocalDateTime.now().plusDays(5))
-                .end(LocalDateTime.now().plusDays(6))
-                .item(item)
-                .booker(otherUser)
-                .status(Status.REJECTED)
-                .build());
+                Booking.builder()
+                        .id(2L)
+                        .start(LocalDateTime.now().plusDays(10))
+                        .end(LocalDateTime.now().plusDays(20))
+                        .item(item)
+                        .booker(otherUser)
+                        .status(Status.APPROVED)
+                        .build(),
+                Booking.builder()
+                        .id(3L)
+                        .start(LocalDateTime.now().plusDays(5))
+                        .end(LocalDateTime.now().plusDays(6))
+                        .item(item)
+                        .booker(otherUser)
+                        .status(Status.REJECTED)
+                        .build());
         when(userRepository.findById(otherUser.getId())).thenReturn(Optional.of(otherUser));
         when(bookingRepository.findAllByItem_OwnerIdOrderByStartDesc(otherUser.getId()))
                 .thenReturn(allBooking);
 
         Collection<BookingDto> bookingTest3 = bookingService.getAllBookingForItems(
-                otherUser.getId(), State.ALL,null,null);
+                otherUser.getId(), State.ALL, null, null);
         assertEquals(2, bookingTest3.size());
     }
 }
