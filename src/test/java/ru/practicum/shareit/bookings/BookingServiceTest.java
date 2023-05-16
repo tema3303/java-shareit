@@ -155,11 +155,11 @@ public class BookingServiceTest {
 
     @Test
     void getAllBookingWithStateFuture() {
-        when(userRepository.findById(otherUser.getId())).thenReturn(Optional.of(otherUser));
-        when(bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(otherUser.getId(), LocalDateTime.now())).thenReturn(List.of(booking));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(user.getId(), LocalDateTime.now())).thenReturn(List.of(booking));
 
         Collection<BookingDto> bookingTest = bookingService.getAllBooking(
-                otherUser.getId(), State.FUTURE, null, null);
+                user.getId(), State.FUTURE, null, null);
         assertEquals(1, bookingTest.size());
     }
 
