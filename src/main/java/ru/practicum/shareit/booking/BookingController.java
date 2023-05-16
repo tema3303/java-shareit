@@ -7,8 +7,6 @@ import ru.practicum.shareit.booking.model.dto.BookingDto;
 import ru.practicum.shareit.booking.model.dto.BookingDtoIn;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.constans.State;
-import ru.practicum.shareit.exceptions.NotFoundException;
-import ru.practicum.shareit.user.service.UserService;
 
 import javax.validation.Valid;
 import java.util.Collection;
