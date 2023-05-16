@@ -44,6 +44,7 @@ public class BookingServiceTest {
     private User user;
     private User otherUser;
     private Item item;
+    private LocalDateTime time;
 
     @BeforeEach
     void creteModel() {
@@ -77,6 +78,7 @@ public class BookingServiceTest {
                 .status("WAITING")
                 .build();
         booking = BookingMapper.toBooking(bookingDtoIn, otherUser, item);
+        time = LocalDateTime.now();
     }
 
     @Test
@@ -156,7 +158,7 @@ public class BookingServiceTest {
     @Test
     void getAllBookingWithStateFuture() {
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
-        when(bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(user.getId(), LocalDateTime.now())).thenReturn(List.of(booking));
+        when(bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(user.getId(), time)).thenReturn(List.of(booking));
 
         Collection<BookingDto> bookingTest = bookingService.getAllBooking(
                 user.getId(), State.FUTURE, null, null);
