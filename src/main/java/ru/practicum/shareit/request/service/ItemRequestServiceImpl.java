@@ -36,6 +36,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public ItemRequestDto addItemRequest(ItemRequestDtoIn itemRequestDtoIn, Long userId) {
+        checkUser(userId);
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователя не существует"));
         ItemRequest itemRequest = ItemRequestMapper.toItemRequest(itemRequestDtoIn, user, LocalDateTime.now());
         return ItemRequestMapper.toItemRequestDto(itemRequestRepository.save(itemRequest));
@@ -44,6 +45,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     @Transactional(readOnly = true)
     public Collection<ItemRequestDtoOut> getAllOwnRequest(Long userId) {
+        checkUser(userId);
         Collection<ItemRequest> itemRequests = itemRequestRepository.findAllByRequester_Id(userId);
         Collection<ItemDto> items = itemRepository.findAllByRequestId(userId).stream()
                 .map(ItemMapper::toItemDto)
@@ -61,6 +63,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     @Transactional(readOnly = true)
     public List<ItemRequestDtoOut> getAllRequests(Long userId, Integer from, Integer size) {
+        checkUser(userId);
         Collection<ItemRequest> requests;
         if (from != null && size != null) {
             if (from < 0 || size < 0) {
@@ -89,11 +92,20 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     @Transactional(readOnly = true)
     public ItemRequestDtoOut getRequestById(Long userId, Long requestId) {
+        checkUser(userId);
         ItemRequest request = itemRequestRepository.findById(requestId).orElseThrow(
                 () -> new NotFoundException("Не существует запроса с данным id"));
         List<ItemDto> items = itemRepository.findAllByRequestId(requestId).stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
         return ItemRequestMapper.toItemRequestDtoOut(request, items);
+    }
+
+    private void checkUser(Long userId) {
+        if (userId == null) {
+            throw new NotFoundException("Пользователь не указан");
+        } else if (userRepository.findById(userId) == null) {
+            throw new NotFoundException("Указанный пользователь не сущетсвует");
+        }
     }
 }
