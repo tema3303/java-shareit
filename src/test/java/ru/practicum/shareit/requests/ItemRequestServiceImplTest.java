@@ -6,8 +6,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.practicum.shareit.booking.storage.BookingRepository;
 import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.item.model.dto.ItemDto;
+import ru.practicum.shareit.item.storage.ItemRepository;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.model.dto.ItemRequestDto;
 import ru.practicum.shareit.request.model.dto.ItemRequestDtoIn;
@@ -34,10 +36,16 @@ public class ItemRequestServiceImplTest {
     @Mock
     private ItemRequestRepository itemRequestRepository;
     @Mock
+    private ItemRepository itemRepository;
+    @Mock
     private UserRepository userRepository;
+    @Mock
+    private BookingRepository bookingRepository;
     private User user;
     private User otherUser;
     private ItemRequest itemRequest;
+    private ItemRequestDto itemRequestDto;
+    private ItemRequestDtoOut itemRequestDtoOut;
     private ItemRequestDtoIn itemRequestDtoIn;
     private LocalDateTime time = LocalDateTime.now();
 
@@ -79,6 +87,8 @@ public class ItemRequestServiceImplTest {
                         .build()
         );
         itemRequest = ItemRequestMapper.toItemRequest(itemRequestDtoIn, user, time);
+        itemRequestDto = ItemRequestMapper.toItemRequestDto(itemRequest);
+        itemRequestDtoOut = ItemRequestMapper.toItemRequestDtoOut(itemRequest, items);
     }
 
     @Test
@@ -139,7 +149,7 @@ public class ItemRequestServiceImplTest {
     void getRequestById() {
         when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
         when(itemRequestRepository.findById(any())).thenReturn(Optional.ofNullable(itemRequest));
-        ItemRequestDtoOut request = itemRequestService.getRequestById(user.getId(), itemRequest.getId());
+        ItemRequestDtoOut request = itemRequestService.getRequestById(user.getId(),itemRequest.getId());
         assertEquals(request.getId(), itemRequest.getId());
     }
 
@@ -148,7 +158,7 @@ public class ItemRequestServiceImplTest {
         when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(user));
         when(itemRequestRepository.findById(any())).thenReturn(Optional.empty());
         NotFoundException exception = assertThrows(NotFoundException.class, () ->
-                itemRequestService.getRequestById(user.getId(), 55L));
+                itemRequestService.getRequestById(user.getId(),55L));
         assertEquals("Не существует запроса с данным id", exception.getMessage());
     }
 }
