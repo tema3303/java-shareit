@@ -13,4 +13,10 @@ public class CommentMapper {
                 .created(comment.getCreated())
                 .build();
     }
+
+    public static CommentOutDto toCommentOutDto(Comment comment) {
+        return CommentOutDto.builder()
+                .text(comment.getText())
+                .build();
+    }
 }
