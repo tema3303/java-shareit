@@ -6,6 +6,7 @@ import org.mockito.AdditionalAnswers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.practicum.shareit.exceptions.ValidationException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.model.dto.UserDto;
 import ru.practicum.shareit.user.model.dto.UserMapper;
@@ -39,6 +40,12 @@ public class UserServiceImplTest {
     private static final User otherUser = User.builder()
             .id(2L)
             .email("mark@gmail.com")
+            .name("Mark")
+            .build();
+
+    private static final User wrongUser = User.builder()
+            .id(2L)
+            .email(null)
             .name("Mark")
             .build();
 
