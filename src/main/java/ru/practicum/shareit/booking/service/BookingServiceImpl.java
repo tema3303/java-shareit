@@ -34,7 +34,6 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
-    private final UserService userService;
 
     @Override
     public BookingDto saveBooking(BookingDtoIn booking, Long userId) {
@@ -244,7 +243,7 @@ public class BookingServiceImpl implements BookingService {
     private void checkUser(Long userId) {
         if (userId == null) {
             throw new NotFoundException("Пользователь не указан");
-        } else if (userRepository.findById(userId) == null) {
+        } else if (userRepository.findById(userId).isEmpty()) {
             throw new NotFoundException("Указанный пользователь не сущетсвует");
         }
     }

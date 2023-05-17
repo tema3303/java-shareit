@@ -104,7 +104,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     private void checkUser(Long userId) {
         if (userId == null) {
             throw new NotFoundException("Пользователь не указан");
-        } else if (userRepository.findById(userId) == null) {
+        } else if (userRepository.findById(userId).isEmpty()) {
             throw new NotFoundException("Указанный пользователь не сущетсвует");
         }
     }

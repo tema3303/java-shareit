@@ -105,7 +105,7 @@ public class ItemRequestServiceImplTest {
         when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
         NotFoundException exception = assertThrows(NotFoundException.class,
                 () -> itemRequestService.addItemRequest(itemRequestDtoIn, 11L));
-        assertEquals("Пользователя не существует", exception.getMessage());
+        assertEquals("Указанный пользователь не сущетсвует", exception.getMessage());
     }
 
     @Test

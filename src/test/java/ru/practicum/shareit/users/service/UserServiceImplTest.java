@@ -7,6 +7,7 @@ import org.mockito.AdditionalAnswers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.practicum.shareit.exceptions.ConflictException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.model.dto.UserDto;
 import ru.practicum.shareit.user.model.dto.UserMapper;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
@@ -69,6 +71,24 @@ public class UserServiceImplTest {
         assertThat(userDto.getId()).isEqualTo(1);
         assertThat(userDto.getName()).isEqualTo("Update");
         assertThat(userDto.getEmail()).isEqualTo("123@mail.ru");
+    }
+
+    @Test
+    void updateUserOldEmail() {
+        User changeUser = User.builder()
+                .id(3L)
+                .email("222@gmail.com")
+                .name("mark")
+                .build();
+        UserDto userUp = UserDto.builder()
+                .email("mark@gmail.com")
+                .build();
+        when(userRepository.findById(anyLong()))
+                .thenReturn(Optional.of(changeUser));
+        when((userRepository.existsByEmail(anyString()))).thenReturn(true);
+        assertThatThrownBy(() -> userService.updateUser(userUp, changeUser.getId()))
+                .isInstanceOf(ConflictException.class)
+                .hasMessage("Такой Email уже существует");
     }
 
     @Test

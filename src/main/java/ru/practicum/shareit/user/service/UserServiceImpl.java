@@ -63,9 +63,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private Boolean checkEmail(UserDto user) {
-        if (userRepository.findAll().stream()
-                .map(User::getEmail)
-                .anyMatch(email -> email.equals(user.getEmail()))) {
+        if (userRepository.existsByEmail(user.getEmail())) {
             throw new ConflictException("Такой Email уже существует");
         } else {
             return true;

@@ -160,6 +160,7 @@ public class BookingServiceImplTest {
     @Test
     void getBookingByIdTest() {
         when(bookingRepository.findById(booking.getId())).thenReturn(Optional.ofNullable(booking));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
         BookingDto bookingTest = bookingService.getBookingById(booking.getId(),
                 user.getId());
         assertEquals(1, bookingTest.getId());
@@ -170,12 +171,11 @@ public class BookingServiceImplTest {
 
     @Test
     void getBookingByIdTestNotOwner() {
-        when(bookingRepository.findById(booking.getId())).thenReturn(Optional.ofNullable(booking));
-
+        User wrongUser = new User(3,"user","122@sa.ru");
         NotFoundException exception = assertThrows(NotFoundException.class, () ->
                 bookingService.getBookingById(booking.getId(),
-                        3L));
-        assertEquals("Данный пользователь не обладает доступом к просмотру", exception.getMessage());
+                        wrongUser.getId()));
+        assertEquals("Указанный пользователь не сущетсвует", exception.getMessage());
     }
 
     @Test
