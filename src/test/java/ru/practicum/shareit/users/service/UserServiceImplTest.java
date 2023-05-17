@@ -1,25 +1,31 @@
 package ru.practicum.shareit.users.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.AdditionalAnswers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.practicum.shareit.booking.model.dto.BookingDtoIn;
+import ru.practicum.shareit.booking.model.dto.BookingMapper;
+import ru.practicum.shareit.exceptions.ConflictException;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.model.dto.UserDto;
 import ru.practicum.shareit.user.model.dto.UserMapper;
 import ru.practicum.shareit.user.service.UserServiceImpl;
 import ru.practicum.shareit.user.storage.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -29,24 +35,23 @@ public class UserServiceImplTest {
     private UserServiceImpl userService;
     @Mock
     private UserRepository userRepository;
+    private User myUser;
+    private User otherUser;
 
-    private static final User myUser = User.builder()
-            .id(1L)
-            .email("artem@yandex.com")
-            .name("Artem")
-            .build();
+    @BeforeEach
+    void creteModel() {
+        myUser = User.builder()
+                .id(1L)
+                .email("artem@yandex.com")
+                .name("Artem")
+                .build();
 
-    private static final User otherUser = User.builder()
-            .id(2L)
-            .email("mark@gmail.com")
-            .name("Mark")
-            .build();
-
-    private static final User wrongUser = User.builder()
-            .id(2L)
-            .email(null)
-            .name("Mark")
-            .build();
+        otherUser = User.builder()
+                .id(2L)
+                .email("mark@gmail.com")
+                .name("Mark")
+                .build();
+    }
 
     @Test
     void saveUser() {
