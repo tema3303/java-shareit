@@ -16,6 +16,7 @@ import ru.practicum.shareit.booking.model.dto.BookingDto;
 import ru.practicum.shareit.booking.model.dto.BookingDtoIn;
 import ru.practicum.shareit.booking.model.dto.BookingMapper;
 import ru.practicum.shareit.booking.service.BookingService;
+import ru.practicum.shareit.constans.State;
 import ru.practicum.shareit.constans.Status;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.dto.ItemMapper;
@@ -24,12 +25,12 @@ import ru.practicum.shareit.user.model.dto.UserMapper;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
 public class BookingControllerTest {
@@ -118,5 +119,50 @@ public class BookingControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(bookingDto.getId()));
+    }
+
+    @Test
+    void confirmBooking() throws Exception {
+        when(bookingService.confirmBooking(true, bookingDtoStat.getId(), otherUser.getId())).thenReturn(bookingDtoStat);
+        mvc.perform(patch("/bookings/2")
+                        .header("X-Sharer-User-Id", otherUser.getId())
+                        .param("approved", "true")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(mapper.writeValueAsString(bookingDtoStat)));
+    }
+
+    @Test
+    void confirmBookingFalse() throws Exception {
+        when(bookingService.confirmBooking(anyBoolean(), anyLong(), anyLong())).thenReturn(bookingDtoStat);
+        mvc.perform(patch("/bookings/1")
+                        .header("X-Sharer-User-Id", otherUser.getId())
+                        .param("approved", "false"))
+                .andExpect(status().isOk())
+                .andExpect(content().json(mapper.writeValueAsString(bookingDtoStat)));
+    }
+
+    @Test
+    void getAllBookingWithStateAll() throws Exception {
+        when(bookingService.getAllBooking(anyLong(), any(State.class), any(), any()))
+                .thenReturn(List.of(bookingDto));
+        mvc.perform(get("/bookings")
+                        .header("X-Sharer-User-Id", user.getId())
+                        .param("approved", "false"))
+                .andExpect(status().isOk())
+                .andExpect(content().json(mapper.writeValueAsString(List.of(bookingDto))));
+    }
+
+    @Test
+    void getAllBookingForItemsAll() throws Exception {
+        when(bookingService.getAllBookingForItems(anyLong(), any(State.class), any(), any()))
+                .thenReturn(List.of(bookingDto));
+        mvc.perform(get("/bookings/owner")
+                        .header("X-Sharer-User-Id", user.getId())
+                        .param("approved", "false"))
+                .andExpect(status().isOk())
+                .andExpect(content().json(mapper.writeValueAsString(List.of(bookingDto))));
     }
 }
