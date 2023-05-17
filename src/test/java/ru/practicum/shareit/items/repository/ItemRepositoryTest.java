@@ -1,4 +1,4 @@
-package ru.practicum.shareit.items;
+package ru.practicum.shareit.items.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
