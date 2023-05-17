@@ -1,4 +1,4 @@
-package ru.practicum.shareit.requests.service;
+package ru.practicum.shareit.request.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,6 @@ import ru.practicum.shareit.request.model.dto.ItemRequestDto;
 import ru.practicum.shareit.request.model.dto.ItemRequestDtoIn;
 import ru.practicum.shareit.request.model.dto.ItemRequestDtoOut;
 import ru.practicum.shareit.request.model.dto.ItemRequestMapper;
-import ru.practicum.shareit.request.service.ItemRequestServiceImpl;
 import ru.practicum.shareit.request.storage.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;

@@ -1,4 +1,4 @@
-package ru.practicum.shareit.bookings.dto;
+package ru.practicum.shareit.booking.dto;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

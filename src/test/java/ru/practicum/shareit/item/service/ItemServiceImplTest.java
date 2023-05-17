@@ -1,4 +1,4 @@
-package ru.practicum.shareit.items.service;
+package ru.practicum.shareit.item.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,7 +16,6 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.dto.ItemBookingDto;
 import ru.practicum.shareit.item.model.dto.ItemDto;
 import ru.practicum.shareit.item.model.dto.ItemMapper;
-import ru.practicum.shareit.item.service.ItemServiceImpl;
 import ru.practicum.shareit.item.storage.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;
@@ -124,6 +123,19 @@ public class ItemServiceImplTest {
         NotFoundException exception = assertThrows(NotFoundException.class, () ->
                 itemService.updateItem(itemUp, 1L, myUser.getId()));
         assertEquals("Предмета не существует", exception.getMessage());
+    }
+
+    @Test
+    void updateItemWrongUser() {
+        ItemDto itemUp = ItemDto.builder()
+                .name("Updated name")
+                .available(false)
+                .build();
+        when(userRepository.findById(myUser.getId()))
+                .thenReturn(Optional.empty());
+        NotFoundException exception = assertThrows(NotFoundException.class, () ->
+                itemService.updateItem(itemUp, 1L, myUser.getId()));
+        assertEquals("Пользователя не существует", exception.getMessage());
     }
 
     @Test

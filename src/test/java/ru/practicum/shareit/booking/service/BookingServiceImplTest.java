@@ -1,4 +1,4 @@
-package ru.practicum.shareit.bookings.service;
+package ru.practicum.shareit.booking.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,7 +10,6 @@ import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.dto.BookingDto;
 import ru.practicum.shareit.booking.model.dto.BookingDtoIn;
 import ru.practicum.shareit.booking.model.dto.BookingMapper;
-import ru.practicum.shareit.booking.service.BookingServiceImpl;
 import ru.practicum.shareit.booking.storage.BookingRepository;
 import ru.practicum.shareit.constans.State;
 import ru.practicum.shareit.constans.Status;
@@ -24,13 +23,15 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class BookingServiceTest {
+public class BookingServiceImplTest {
     @Mock
     private ItemRepository itemRepository;
     @Mock
@@ -41,6 +42,11 @@ public class BookingServiceTest {
     private BookingServiceImpl bookingService;
     private Booking booking;
     private BookingDtoIn bookingDtoIn;
+    private Booking bookingFuture;
+    private Booking bookingPast;
+    private Booking bookingCurrent;
+    private Booking bookingApproved;
+    private Booking bookingRej;
     private User user;
     private User otherUser;
     private Item item;
@@ -78,6 +84,14 @@ public class BookingServiceTest {
                 .status("WAITING")
                 .build();
         booking = BookingMapper.toBooking(bookingDtoIn, otherUser, item);
+        bookingRej = Booking.builder()
+                .id(2L)
+                .start(LocalDateTime.now().plusDays(1))
+                .end(LocalDateTime.now().plusDays(2))
+                .item(item)
+                .booker(otherUser)
+                .status(Status.REJECTED)
+                .build();
         time = LocalDateTime.now();
     }
 
@@ -153,6 +167,39 @@ public class BookingServiceTest {
         Collection<BookingDto> bookingTest = bookingService.getAllBooking(
                 otherUser.getId(), State.ALL, null, null);
         assertEquals(1, bookingTest.size());
+    }
+
+    @Test
+    void getAllBookingWithStateWaiting() {
+        when(userRepository.findById(otherUser.getId())).thenReturn(Optional.of(otherUser));
+        when(bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(anyLong(), any(Status.class))).thenReturn(List.of(booking));
+
+        Collection<BookingDto> bookingTest = bookingService.getAllBooking(
+                otherUser.getId(), State.WAITING, null, null);
+        assertEquals(1, bookingTest.size());
+    }
+
+    @Test
+    void getAllBookingWithStateCurrent() {
+        when(userRepository.findById(otherUser.getId())).thenReturn(Optional.of(otherUser));
+        when(bookingRepository.findAllByBookerIdAndStartBeforeAndEndIsAfterOrderByStartDesc(anyLong()
+                , any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(List.of(booking));
+
+        Collection<BookingDto> bookingTest = bookingService.getAllBooking(
+                otherUser.getId(), State.CURRENT, null, null);
+        assertEquals(1, bookingTest.size());
+    }
+
+    @Test
+    void getAllBookingWithStateAllWithPag() {
+        when(userRepository.findById(otherUser.getId())).thenReturn(Optional.of(otherUser));
+        when(bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(anyLong(),
+                 any(Status.class))).thenReturn(List.of(bookingRej));
+
+        Collection<BookingDto> bookingTest = bookingService.getAllBooking(
+                otherUser.getId(), State.REJECTED, null, null);
+        assertEquals(1, bookingTest.size());
+        assertEquals(Status.REJECTED, bookingTest.stream().collect(Collectors.toList()).get(0).getStatus());
     }
 
     @Test
