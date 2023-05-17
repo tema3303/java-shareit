@@ -6,6 +6,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import ru.practicum.shareit.booking.storage.BookingRepository;
 import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.item.model.dto.ItemDto;
@@ -116,6 +118,21 @@ public class ItemRequestServiceImplTest {
         when(itemRequestRepository.findAllByRequester_Id(anyLong())).thenReturn(requests);
         List result = (List) itemRequestService.getAllOwnRequest(user.getId());
         assertEquals(2, result.size());
+    }
+
+    @Test
+    void getAllRequestsWithPag() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.ofNullable(otherUser));
+        List<ItemRequest> requests = List.of(
+                itemRequest,
+                new ItemRequest(2L, "Ручка", user, time),
+                new ItemRequest(3L, "Карандаш", user, time),
+                new ItemRequest(4L, "Стол", user, time),
+                new ItemRequest(5L, "Ручка гелевая", user, time)
+        );
+        when(itemRequestRepository.findAllByRequester_IdNot(anyLong(), any(Pageable.class))).thenReturn(new PageImpl<>(requests));
+        List result = itemRequestService.getAllRequests(otherUser.getId(), 0, 10);
+        assertEquals(5, result.size());
     }
 
     @Test

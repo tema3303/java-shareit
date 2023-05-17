@@ -182,8 +182,8 @@ public class BookingServiceImplTest {
     @Test
     void getAllBookingWithStateCurrent() {
         when(userRepository.findById(otherUser.getId())).thenReturn(Optional.of(otherUser));
-        when(bookingRepository.findAllByBookerIdAndStartBeforeAndEndIsAfterOrderByStartDesc(anyLong()
-                , any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(List.of(booking));
+        when(bookingRepository.findAllByBookerIdAndStartBeforeAndEndIsAfterOrderByStartDesc(anyLong(),
+                any(LocalDateTime.class), any(LocalDateTime.class))).thenReturn(List.of(booking));
 
         Collection<BookingDto> bookingTest = bookingService.getAllBooking(
                 otherUser.getId(), State.CURRENT, null, null);
@@ -194,7 +194,7 @@ public class BookingServiceImplTest {
     void getAllBookingWithStateAllWithPag() {
         when(userRepository.findById(otherUser.getId())).thenReturn(Optional.of(otherUser));
         when(bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(anyLong(),
-                 any(Status.class))).thenReturn(List.of(bookingRej));
+                any(Status.class))).thenReturn(List.of(bookingRej));
 
         Collection<BookingDto> bookingTest = bookingService.getAllBooking(
                 otherUser.getId(), State.REJECTED, null, null);
