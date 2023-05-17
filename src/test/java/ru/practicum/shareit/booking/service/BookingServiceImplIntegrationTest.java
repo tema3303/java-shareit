@@ -73,7 +73,7 @@ class BookingServiceImplIntegrationTest {
     }
 
     @Test
-    void getAllByItemOwnerIdTest() {
+    void getAllByItemOwnerIdTestWithPag() {
         User itemOwner = createUser("1");
         User booker = createUser("2");
         userRepository.saveAll(List.of(itemOwner, booker));
@@ -96,6 +96,45 @@ class BookingServiceImplIntegrationTest {
         Collection<BookingDto> future = bookingService.getAllBookingForItems(ownerId, State.FUTURE, 0, 10);
         Collection<BookingDto> waiting = bookingService.getAllBookingForItems(ownerId, State.WAITING, 0, 10);
         Collection<BookingDto> rejected = bookingService.getAllBookingForItems(ownerId, State.REJECTED, 0, 10);
+
+        assertThat(all.size()).isEqualTo(4);
+        assertThat(past.size()).isEqualTo(1);
+        assertThat(past).contains(BookingMapper.toBookingDto(pastBooking));
+        assertThat(current.size()).isEqualTo(2);
+        assertThat(current).contains(BookingMapper.toBookingDto(currentBooking));
+        assertThat(current).contains(BookingMapper.toBookingDto(rejectedBooking));
+        assertThat(future.size()).isEqualTo(1);
+        assertThat(future).contains(BookingMapper.toBookingDto(futureBooking));
+        assertThat(waiting.size()).isEqualTo(1);
+        assertThat(waiting).contains(BookingMapper.toBookingDto(futureBooking));
+        assertThat(rejected.size()).isEqualTo(1);
+        assertThat(rejected).contains(BookingMapper.toBookingDto(rejectedBooking));
+    }
+
+    @Test
+    void getAllByItemOwnerIdTestWithoutPag() {
+        User itemOwner = createUser("1");
+        User booker = createUser("2");
+        userRepository.saveAll(List.of(itemOwner, booker));
+        Long ownerId = itemOwner.getId();
+        Item item1 = createItem("1", itemOwner);
+        Item item2 = createItem("2", itemOwner);
+        Item item3 = createItem("3", itemOwner);
+        Item item4 = createItem("4", itemOwner);
+        Item item5 = createItem("5", itemOwner);
+        itemRepository.saveAll(List.of(item1, item2, item3, item4, item5));
+        Booking pastBooking = createPastBooking(item1, booker);
+        Booking currentBooking = createCurrentBooking(item2, booker);
+        Booking futureBooking = createFutureBooking(item3, booker);
+        Booking rejectedBooking = createRejectedBooking(item5, booker);
+        bookingRepository.saveAll(List.of(pastBooking, currentBooking, futureBooking, rejectedBooking));
+
+        Collection<BookingDto> all = bookingService.getAllBookingForItems(ownerId, State.ALL, null, null);
+        Collection<BookingDto> past = bookingService.getAllBookingForItems(ownerId, State.PAST, null, null);
+        Collection<BookingDto> current = bookingService.getAllBookingForItems(ownerId, State.CURRENT, null, null);
+        Collection<BookingDto> future = bookingService.getAllBookingForItems(ownerId, State.FUTURE, null, null);
+        Collection<BookingDto> waiting = bookingService.getAllBookingForItems(ownerId, State.WAITING, null, null);
+        Collection<BookingDto> rejected = bookingService.getAllBookingForItems(ownerId, State.REJECTED, null, null);
 
         assertThat(all.size()).isEqualTo(4);
         assertThat(past.size()).isEqualTo(1);
