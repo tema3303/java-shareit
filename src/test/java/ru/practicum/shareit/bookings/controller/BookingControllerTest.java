@@ -1,4 +1,4 @@
-package ru.practicum.shareit.bookings;
+package ru.practicum.shareit.bookings.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;

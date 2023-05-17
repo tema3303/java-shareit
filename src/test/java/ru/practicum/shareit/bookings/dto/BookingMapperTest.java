@@ -1,4 +1,4 @@
-package ru.practicum.shareit.bookings;
+package ru.practicum.shareit.bookings.dto;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,10 +29,10 @@ public class BookingMapperTest {
         LocalDateTime start = now.plusDays(1);
         LocalDateTime end = now.plusDays(2);
 
-        User user = new User(1L, "User name", "user@mail.com");
-        User anotherUser = new User(2L, "another name", "another@mail.com");
+        User user = new User(1L, "Artem", "artem@gmail.com");
+        User anotherUser = new User(2L, "nick", "nick@mail.com");
 
-        Item item = new Item(1L, "name", "desc", true, user, null);
+        Item item = new Item(1L, "name", "norm", true, user, null);
         Booking booking = new Booking(1L, start, end,
                 item, anotherUser, null);
         bookingDto = BookingMapper.toBookingDto(booking);
