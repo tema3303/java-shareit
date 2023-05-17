@@ -14,6 +14,8 @@ import ru.practicum.shareit.booking.storage.BookingRepository;
 import ru.practicum.shareit.constans.State;
 import ru.practicum.shareit.constans.Status;
 import ru.practicum.shareit.exceptions.NotFoundException;
+import ru.practicum.shareit.exceptions.UnsupportedException;
+import ru.practicum.shareit.exceptions.ValidationException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.ItemRepository;
 import ru.practicum.shareit.user.model.User;
@@ -42,14 +44,12 @@ public class BookingServiceImplTest {
     private BookingServiceImpl bookingService;
     private Booking booking;
     private BookingDtoIn bookingDtoIn;
-    private Booking bookingFuture;
-    private Booking bookingPast;
-    private Booking bookingCurrent;
-    private Booking bookingApproved;
+    private BookingDtoIn bookingRejDtoIn;
     private Booking bookingRej;
     private User user;
     private User otherUser;
     private Item item;
+    private Item item2;
     private LocalDateTime time;
 
     @BeforeEach
@@ -75,6 +75,15 @@ public class BookingServiceImplTest {
                 .requestId(1L)
                 .build();
 
+        item2 = Item.builder()
+                .id(1L)
+                .name("Item")
+                .description("Description item")
+                .available(false)
+                .owner(user)
+                .requestId(1L)
+                .build();
+
         bookingDtoIn = BookingDtoIn.builder()
                 .id(1L)
                 .start(LocalDateTime.now().plusDays(1))
@@ -84,14 +93,15 @@ public class BookingServiceImplTest {
                 .status("WAITING")
                 .build();
         booking = BookingMapper.toBooking(bookingDtoIn, otherUser, item);
-        bookingRej = Booking.builder()
+        bookingRejDtoIn = BookingDtoIn.builder()
                 .id(2L)
                 .start(LocalDateTime.now().plusDays(1))
                 .end(LocalDateTime.now().plusDays(2))
-                .item(item)
-                .booker(otherUser)
-                .status(Status.REJECTED)
+                .itemId(item2.getId())
+                .bookerId(otherUser.getId())
+                .status("REJECTED")
                 .build();
+        bookingRej = BookingMapper.toBooking(bookingRejDtoIn, otherUser, item);
         time = LocalDateTime.now();
     }
 
@@ -107,6 +117,15 @@ public class BookingServiceImplTest {
         assertEquals(bookingDtoIn.getStart(), bookingTest.getStart());
         assertEquals(bookingDtoIn.getEnd(), bookingTest.getEnd());
         assertEquals(otherUser.getId(), bookingTest.getBooker().getId());
+    }
+
+    @Test
+    void createBookingTestNotAvalible() {
+        when(userRepository.findById(otherUser.getId())).thenReturn(Optional.of(otherUser));
+        when(itemRepository.findById(item2.getId())).thenReturn(Optional.of(item2));
+        ValidationException exception = assertThrows(ValidationException.class, () -> bookingService.saveBooking(bookingRejDtoIn,
+                otherUser.getId()));
+        assertEquals("Вещь не доступна к бронированию", exception.getMessage());
     }
 
     @Test
@@ -170,6 +189,16 @@ public class BookingServiceImplTest {
     }
 
     @Test
+    void getAllBookingWithStateUNSUPPORTED() {
+        when(userRepository.findById(otherUser.getId())).thenReturn(Optional.of(otherUser));
+
+        UnsupportedException exception = assertThrows(UnsupportedException.class, () ->
+                bookingService.getAllBooking(
+                        otherUser.getId(), State.UNSUPPORTED_STATUS, null, null));
+        assertEquals("Unknown state: UNSUPPORTED_STATUS", exception.getMessage());
+    }
+
+    @Test
     void getAllBookingWithStateWaiting() {
         when(userRepository.findById(otherUser.getId())).thenReturn(Optional.of(otherUser));
         when(bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(anyLong(), any(Status.class))).thenReturn(List.of(booking));
@@ -191,11 +220,11 @@ public class BookingServiceImplTest {
     }
 
     @Test
-    void getAllBookingWithStateAllWithPag() {
+    void getAllBookingWithStateRej() {
         when(userRepository.findById(otherUser.getId())).thenReturn(Optional.of(otherUser));
         when(bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(anyLong(),
                 any(Status.class))).thenReturn(List.of(bookingRej));
-
+        bookingRej.setStatus(Status.REJECTED);
         Collection<BookingDto> bookingTest = bookingService.getAllBooking(
                 otherUser.getId(), State.REJECTED, null, null);
         assertEquals(1, bookingTest.size());
