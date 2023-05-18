@@ -20,7 +20,6 @@ import javax.persistence.*;
 public class Item {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private long id;
     @Column(length = 20, nullable = false)
     private String name;
@@ -31,6 +30,6 @@ public class Item {
     @ManyToOne
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
-    @Column(name = "requestId")
+    @Column
     private Long requestId;//ссылка на запрос пользователя о создании
 }

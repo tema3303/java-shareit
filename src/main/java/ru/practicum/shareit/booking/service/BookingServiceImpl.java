@@ -23,6 +23,7 @@ import ru.practicum.shareit.user.storage.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -85,8 +86,8 @@ public class BookingServiceImpl implements BookingService {
     public Collection<BookingDto> getAllBooking(Long userId, State state, Integer from, Integer size) {
         checkUser(userId);
         Collection<Booking> bookings;
-        if (from != null && size != null) {
-            if (from < 0 || size < 0) {
+        if (Objects.nonNull(from) && Objects.nonNull(size)) {
+            if (from < 0 || size <= 0) {
                 throw new ValidationException("Значения не могут быть отрицательными");
             }
             int pageNumber = from / size;
@@ -106,8 +107,8 @@ public class BookingServiceImpl implements BookingService {
     public Collection<BookingDto> getAllBookingForItems(Long userId, State state, Integer from, Integer size) {
         checkUser(userId);
         Collection<Booking> bookings;
-        if (from != null && size != null) {
-            if (from < 0 || size < 0) {
+        if (Objects.nonNull(from) && Objects.nonNull(size)) {
+            if (from < 0 || size <= 0) {
                 throw new ValidationException("Значения не могут быть отрицательными");
             }
             int pageNumber = from / size;

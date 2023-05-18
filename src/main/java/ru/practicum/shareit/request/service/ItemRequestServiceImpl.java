@@ -65,8 +65,8 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     public List<ItemRequestDtoOut> getAllRequests(Long userId, Integer from, Integer size) {
         checkUser(userId);
         Collection<ItemRequest> requests;
-        if (from != null && size != null) {
-            if (from < 0 || size < 0) {
+        if (Objects.nonNull(from) && Objects.nonNull(size) && size != null) {
+            if (from < 0 || size <= 0) {
                 throw new ValidationException("Значения не могут быть отрицательными");
             }
             int pageNumber = from / size;
