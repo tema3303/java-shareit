@@ -1,8 +1,9 @@
 package ru.practicum.shareit.item.model.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import ru.practicum.shareit.request.ItemRequest;
+import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -12,6 +13,8 @@ import javax.validation.constraints.Size;
  * TODO Sprint add-controllers.
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Builder
 public class ItemDto {
     private long id;
@@ -22,5 +25,5 @@ public class ItemDto {
     private String description;
     @NotNull
     private Boolean available;
-    private ItemRequest request;//ссылка на запрос пользователя о создании
+    private Long requestId;//ссылка на запрос пользователя о создании
 }

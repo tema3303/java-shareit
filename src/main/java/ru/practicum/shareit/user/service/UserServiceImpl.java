@@ -6,9 +6,12 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exceptions.ConflictException;
 import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.model.dto.UserDto;
+import ru.practicum.shareit.user.model.dto.UserMapper;
 import ru.practicum.shareit.user.storage.UserRepository;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -18,36 +21,39 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<User> getAllUsers() {
-        return userRepository.findAll();
+    public Collection<UserDto> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(UserMapper::toUserDto)
+                .collect(Collectors.toList());
     }
 
     @Override
     @Transactional
-    public User saveUser(User user) {
-        return userRepository.save(user);
+    public UserDto saveUser(UserDto userDto) {
+        User user = UserMapper.toUser(userDto);
+        return UserMapper.toUserDto(userRepository.save(user));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public User getUserById(long userId) {
-        return userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Нет такого пользователя"));
+    public UserDto getUserById(long userId) {
+        return UserMapper.toUserDto(userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Нет такого пользователя")));
     }
 
     @Override
     @Transactional
-    public User updateUser(User user, long userId) {
+    public UserDto updateUser(UserDto user, long userId) {
         if (!getUserById(userId).getEmail().equals(user.getEmail())) {
             checkEmail(user);
         }
-        User updateUser = getUserById(userId);
+        User updateUser = UserMapper.toUser(getUserById(userId));
         if (user.getName() != null) {
             updateUser.setName(user.getName());
         }
         if (user.getEmail() != null) {
             updateUser.setEmail(user.getEmail());
         }
-        return userRepository.save(updateUser);
+        return UserMapper.toUserDto(userRepository.save(updateUser));
     }
 
     @Override
@@ -56,10 +62,8 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(userId);
     }
 
-    private Boolean checkEmail(User user) {
-        if (userRepository.findAll().stream()
-                .map(User::getEmail)
-                .anyMatch(email -> email.equals(user.getEmail()))) {
+    private Boolean checkEmail(UserDto user) {
+        if (userRepository.existsByEmail(user.getEmail())) {
             throw new ConflictException("Такой Email уже существует");
         } else {
             return true;

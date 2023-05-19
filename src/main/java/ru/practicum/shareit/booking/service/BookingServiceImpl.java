@@ -1,6 +1,9 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.model.Booking;
@@ -20,6 +23,7 @@ import ru.practicum.shareit.user.storage.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -69,6 +73,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional(readOnly = true)
     public BookingDto getBookingById(Long id, Long userId) {
+        checkUser(userId);
         Booking booking = bookingRepository.findById(id).orElseThrow(() -> new NotFoundException("Нет данных о бронировании"));
         if (booking.getItem().getOwner().getId() != userId && booking.getBooker().getId() != userId) {
             throw new NotFoundException("Данный пользователь не обладает доступом к просмотру");
@@ -78,51 +83,168 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<BookingDto> getAllBooking(Long userId, State state) {
+    public Collection<BookingDto> getAllBooking(Long userId, State state, Integer from, Integer size) {
+        checkUser(userId);
         Collection<Booking> bookings;
-        LocalDateTime time = LocalDateTime.now();
-        if (state == State.ALL) {
-            bookings = bookingRepository.findAllByBookerIdOrderByStartDesc(userId);
-        } else if (state == State.WAITING) {
-            bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.WAITING);
-        } else if (state == State.REJECTED) {
-            bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.REJECTED);
-        } else if (state == State.CURRENT) {
-            bookings = bookingRepository.findAllByBookerIdAndStartBeforeAndEndIsAfterOrderByStartDesc(userId, time, time);
-        } else if (state == State.FUTURE) {
-            bookings = bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(userId, time);
-        } else if (state == State.PAST) {
-            bookings = bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, time);
+        if (Objects.nonNull(from) && Objects.nonNull(size)) {
+            if (from < 0 || size <= 0) {
+                throw new ValidationException("Значения не могут быть отрицательными");
+            }
+            int pageNumber = from / size;
+            Pageable pagination = PageRequest.of(pageNumber, size);
+            bookings = getAllBookingWithPag(userId, state, pagination);
         } else {
-            throw new UnsupportedException("Unknown state: UNSUPPORTED_STATUS");
+            bookings = getAllBookingWithoutPag(userId, state);
         }
         return bookings.stream()
                 .map(BookingMapper::toBookingDto)
                 .collect(Collectors.toList());
     }
 
+
     @Override
     @Transactional(readOnly = true)
-    public Collection<BookingDto> getAllBookingForItems(Long userId, State state) {
+    public Collection<BookingDto> getAllBookingForItems(Long userId, State state, Integer from, Integer size) {
+        checkUser(userId);
         Collection<Booking> bookings;
-        LocalDateTime time = LocalDateTime.now();
-        if (state == State.ALL) {
-            bookings = bookingRepository.findAllByItem_OwnerIdOrderByStartDesc(userId);
-        } else if (state == State.REJECTED) {
-            bookings = bookingRepository.findAllByItem_OwnerIdAndStatusOrderByStartDesc(userId, Status.REJECTED);
-        } else if (state == State.WAITING) {
-            bookings = bookingRepository.findAllByItem_OwnerIdAndStatusOrderByStartDesc(userId, Status.WAITING);
-        } else if (state == State.CURRENT) {
-            bookings = bookingRepository.findAllByItem_OwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId, time, time);
-        } else if (state == State.FUTURE) {
-            bookings = bookingRepository.findAllByItem_OwnerIdAndStartAfterOrderByStartDesc(userId, time);
-        } else if (state == State.PAST) {
-            bookings = bookingRepository.findAllByItem_OwnerIdAndEndBeforeOrderByStartDesc(userId, time);
+        if (Objects.nonNull(from) && Objects.nonNull(size)) {
+            if (from < 0 || size <= 0) {
+                throw new ValidationException("Значения не могут быть отрицательными");
+            }
+            int pageNumber = from / size;
+            Pageable pagination = PageRequest.of(pageNumber, size);
+            bookings = getAllBookingForItemsWithPag(userId, state, pagination);
         } else {
-            throw new UnsupportedException("Unknown state: UNSUPPORTED_STATUS");
+            bookings = getAllBookingForItemsWithoutPag(userId, state);
         }
         return bookings.stream()
                 .map(BookingMapper::toBookingDto)
                 .collect(Collectors.toList());
+    }
+
+
+    private Collection<Booking> getAllBookingWithPag(Long userId, State state, Pageable pagination) {
+        checkUser(userId);
+        LocalDateTime time = LocalDateTime.now();
+        Page<Booking> bookings;
+        switch (state) {
+            case ALL:
+                bookings = bookingRepository.findAllByBookerIdOrderByStartDesc(userId, pagination);
+                break;
+            case WAITING:
+                bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.WAITING, pagination);
+                break;
+            case REJECTED:
+                bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.REJECTED, pagination);
+                break;
+            case CURRENT:
+                bookings = bookingRepository.findAllByBookerIdAndStartBeforeAndEndIsAfterOrderByStartDesc(userId, time, time, pagination);
+                break;
+            case FUTURE:
+                bookings = bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(userId, time, pagination);
+                break;
+            case PAST:
+                bookings = bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, time, pagination);
+                break;
+            default:
+                throw new UnsupportedException("Unknown state: UNSUPPORTED_STATUS");
+        }
+        return bookings.getContent();
+    }
+
+
+    private Collection<Booking> getAllBookingWithoutPag(Long userId, State state) {
+        checkUser(userId);
+        Collection<Booking> bookings;
+        LocalDateTime time = LocalDateTime.now();
+        switch (state) {
+            case ALL:
+                bookings = bookingRepository.findAllByBookerIdOrderByStartDesc(userId);
+                break;
+            case WAITING:
+                bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.WAITING);
+                break;
+            case REJECTED:
+                bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.REJECTED);
+                break;
+            case CURRENT:
+                bookings = bookingRepository.findAllByBookerIdAndStartBeforeAndEndIsAfterOrderByStartDesc(userId, time, time);
+                break;
+            case FUTURE:
+                bookings = bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(userId, time);
+                break;
+            case PAST:
+                bookings = bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, time);
+                break;
+            default:
+                throw new UnsupportedException("Unknown state: UNSUPPORTED_STATUS");
+        }
+        return bookings;
+    }
+
+    private Collection<Booking> getAllBookingForItemsWithPag(Long userId, State state, Pageable pagination) {
+        checkUser(userId);
+        LocalDateTime time = LocalDateTime.now();
+        Page<Booking> bookings;
+        switch (state) {
+            case ALL:
+                bookings = bookingRepository.findAllByItem_OwnerIdOrderByStartDesc(userId, pagination);
+                break;
+            case WAITING:
+                bookings = bookingRepository.findAllByItem_OwnerIdAndStatusOrderByStartDesc(userId, Status.WAITING, pagination);
+                break;
+            case REJECTED:
+                bookings = bookingRepository.findAllByItem_OwnerIdAndStatusOrderByStartDesc(userId, Status.REJECTED, pagination);
+                break;
+            case CURRENT:
+                bookings = bookingRepository.findAllByItem_OwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId, time, time, pagination);
+                break;
+            case FUTURE:
+                bookings = bookingRepository.findAllByItem_OwnerIdAndStartAfterOrderByStartDesc(userId, time, pagination);
+                break;
+            case PAST:
+                bookings = bookingRepository.findAllByItem_OwnerIdAndEndBeforeOrderByStartDesc(userId, time, pagination);
+                break;
+            default:
+                throw new UnsupportedException("Unknown state: UNSUPPORTED_STATUS");
+        }
+        return bookings.getContent();
+    }
+
+    private Collection<Booking> getAllBookingForItemsWithoutPag(Long userId, State state) {
+        checkUser(userId);
+        LocalDateTime time = LocalDateTime.now();
+        Collection<Booking> bookings;
+        switch (state) {
+            case ALL:
+                bookings = bookingRepository.findAllByItem_OwnerIdOrderByStartDesc(userId);
+                break;
+            case WAITING:
+                bookings = bookingRepository.findAllByItem_OwnerIdAndStatusOrderByStartDesc(userId, Status.WAITING);
+                break;
+            case REJECTED:
+                bookings = bookingRepository.findAllByItem_OwnerIdAndStatusOrderByStartDesc(userId, Status.REJECTED);
+                break;
+            case CURRENT:
+                bookings = bookingRepository.findAllByItem_OwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId, time, time);
+                break;
+            case FUTURE:
+                bookings = bookingRepository.findAllByItem_OwnerIdAndStartAfterOrderByStartDesc(userId, time);
+                break;
+            case PAST:
+                bookings = bookingRepository.findAllByItem_OwnerIdAndEndBeforeOrderByStartDesc(userId, time);
+                break;
+            default:
+                throw new UnsupportedException("Unknown state: UNSUPPORTED_STATUS");
+        }
+        return bookings;
+    }
+
+    private void checkUser(Long userId) {
+        if (userId == null) {
+            throw new NotFoundException("Пользователь не указан");
+        } else if (userRepository.findById(userId).isEmpty()) {
+            throw new NotFoundException("Указанный пользователь не сущетсвует");
+        }
     }
 }

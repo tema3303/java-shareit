@@ -11,9 +11,11 @@ import ru.practicum.shareit.exceptions.ValidationException;
 import ru.practicum.shareit.item.comment.*;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.dto.ItemBookingDto;
+import ru.practicum.shareit.item.model.dto.ItemDto;
 import ru.practicum.shareit.item.model.dto.ItemMapper;
 import ru.practicum.shareit.item.storage.ItemRepository;
 import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.service.UserService;
 import ru.practicum.shareit.user.storage.UserRepository;
 
 import java.time.LocalDateTime;
@@ -27,16 +29,24 @@ public class ItemServiceImpl implements ItemService {
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
+    private final UserService userService;
 
     @Override
     @Transactional
-    public Item addItem(Item item) {
-        return itemRepository.save(item);
+    public ItemDto addItem(ItemDto itemDto, Long userId) {
+        checkUser(userId);
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователя не существует"));
+        Item item = ItemMapper.toItem(itemDto, user);
+        Item savedItem = itemRepository.save(item);
+        return ItemMapper.toItemDto((savedItem));
     }
 
     @Override
     @Transactional
-    public Item updateItem(Item item, long itemId) {
+    public ItemDto updateItem(ItemDto itemDto, long itemId, long userId) {
+        checkUser(userId);
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователя не существует"));
+        Item item = ItemMapper.toItem(itemDto, user);
         Item updateItem = itemRepository.findById(itemId).orElseThrow(() -> new NotFoundException("Предмета не существует"));
         if (item.getOwner() != null) {
             updateItem.setOwner(item.getOwner());
@@ -50,12 +60,13 @@ public class ItemServiceImpl implements ItemService {
         if (item.getAvailable() != null) {
             updateItem.setAvailable(item.getAvailable());
         }
-        return itemRepository.save(updateItem);
+        return ItemMapper.toItemDto(itemRepository.save(updateItem));
     }
 
     @Override
     @Transactional(readOnly = true)
     public ItemBookingDto getItemById(long id, long userId) {
+        checkUser(userId);
         Item item = itemRepository.findById(id).orElseThrow(() -> new NotFoundException("Предмета не существует"));
         Collection<Booking> bookings = bookingRepository.findAllByItem_IdAndItem_Owner_IdAndStatusNotOrderByStartAsc(id, userId, Status.REJECTED);
         List<CommentDto> comments = commentRepository
@@ -69,7 +80,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional(readOnly = true)
     public Collection<ItemBookingDto> getAllItem(long userId) {
-
+        checkUser(userId);
         Collection<Item> items = itemRepository.findAllByOwnerIdOrderById(userId);
         Set<Long> itemsIds = items.stream().map(Item::getId).collect(Collectors.toSet());
         Map<Long, List<Comment>> comments = commentRepository
@@ -90,22 +101,25 @@ public class ItemServiceImpl implements ItemService {
                     nextBookingInSorted(itemIdToBookings.getOrDefault(item.getId(), List.of()))
             );
             result.add(itemBookingDto);
-            ;
         }
         return result;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Collection<Item> searchItem(String text) {
+    public Collection<ItemDto> searchItem(String text, long userId) {
+        checkUser(userId);
         if (text.isBlank()) {
             return Collections.emptyList();
         }
-        return itemRepository.search(text);
+        return itemRepository.search(text).stream()
+                .map(ItemMapper::toItemDto)
+                .collect(Collectors.toList());
     }
 
     @Override
     public CommentDto addComment(Long userId, Long itemId, CommentOutDto commentOutDto) {
+        checkUser(userId);
         if (commentOutDto.getText().isEmpty()) {
             throw new ValidationException("Комментарий пустой");
         }
@@ -154,5 +168,13 @@ public class ItemServiceImpl implements ItemService {
             }
         }
         return null;
+    }
+
+    private void checkUser(Long userId) {
+        if (userId == null) {
+            throw new NotFoundException("Пользователь не указан");
+        } else if (userRepository.findById(userId) == null) {
+            throw new NotFoundException("Указанный пользователь не сущетсвует");
+        }
     }
 }

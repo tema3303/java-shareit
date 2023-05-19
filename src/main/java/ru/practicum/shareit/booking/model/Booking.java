@@ -25,7 +25,6 @@ import java.time.LocalDateTime;
 public class Booking {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private long id;
     @Column(name = "start_date", nullable = false)
     private LocalDateTime start;
