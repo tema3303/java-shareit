@@ -9,7 +9,6 @@ import ru.practicum.shareit.item.model.dto.ItemBookingDto;
 import ru.practicum.shareit.item.model.dto.ItemDto;
 import ru.practicum.shareit.item.service.ItemService;
 
-import javax.validation.Valid;
 import java.util.Collection;
 
 /**
@@ -25,9 +24,8 @@ public class ItemController {
     private static final String USER_ID = "X-Sharer-User-Id";
 
     @PostMapping
-    public ItemDto addItem(@RequestHeader(value = USER_ID) Long userId, @Valid @RequestBody ItemDto itemDto) {
+    public ItemDto addItem(@RequestHeader(value = USER_ID) Long userId, @RequestBody ItemDto itemDto) {
         log.info("Получен запрос 'POST /items'");
-        ;
         return itemService.addItem(itemDto, userId);
     }
 

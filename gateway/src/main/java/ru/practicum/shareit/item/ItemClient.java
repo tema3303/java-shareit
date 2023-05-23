@@ -1,4 +1,4 @@
-package ru.practicum.shareit.booking;
+package ru.practicum.shareit.item;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,7 +31,7 @@ public class ItemClient extends BaseClient {
         return post("", userId, itemDto);
     }
 
-    public ResponseEntity<Object> updateItem(Long userId,ItemDto itemDto, long itemId) {
+    public ResponseEntity<Object> updateItem(Long userId, ItemDto itemDto, long itemId) {
         return patch("/" + itemId, userId, itemDto);
     }
 

@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.booking.ItemClient;
 import ru.practicum.shareit.item.dto.CommentOutDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 
@@ -31,7 +30,7 @@ public class ItemController {
 
     @PatchMapping("/{itemId}")
     public ResponseEntity<Object> updateItem(@RequestHeader(value = USER_ID) Long userId, @RequestBody ItemDto itemDto,
-                              @PathVariable long itemId) {
+                                             @PathVariable long itemId) {
         log.info(String.format("Получен запрос 'PATCH /items/%d'", itemId));
         return itemClient.updateItem(userId, itemDto, itemId);
     }
