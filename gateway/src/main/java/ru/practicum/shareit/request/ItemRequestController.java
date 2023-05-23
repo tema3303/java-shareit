@@ -36,8 +36,8 @@ public class ItemRequestController {
 
     @GetMapping("/all")
     public ResponseEntity<Object> getAllRequests(@RequestHeader(value = USER_ID) Long userId,
-                                                  @RequestParam(required = false) Integer from,
-                                                  @RequestParam(required = false) Integer size) {
+                                                 @RequestParam(required = false) Integer from,
+                                                 @RequestParam(required = false) Integer size) {
         log.info("Получен запрос 'Get /requests/all'");
         return requestClient.getAllRequests(userId, from, size);
     }
