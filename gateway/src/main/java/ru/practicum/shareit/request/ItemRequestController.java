@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.request.dto.ItemRequestDtoIn;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 
 /**
  * TODO Sprint add-item-requests.
@@ -36,8 +38,8 @@ public class ItemRequestController {
 
     @GetMapping("/all")
     public ResponseEntity<Object> getAllRequests(@RequestHeader(value = USER_ID) Long userId,
-                                                 @RequestParam(required = false) Integer from,
-                                                 @RequestParam(required = false) Integer size) {
+                                                 @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
+                                                 @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
         log.info("Получен запрос 'Get /requests/all'");
         return requestClient.getAllRequests(userId, from, size);
     }
