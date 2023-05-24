@@ -46,7 +46,7 @@ public class ItemRequestController {
 
 
     @GetMapping("/{requestId}")
-    public ItemRequestDtoOut getRequestById(@RequestHeader(value = USER_ID) Long userId, @PathVariable Long requestId) {
+    public ItemRequestDtoOut getRequestById(@PathVariable Long requestId, @RequestHeader(value = USER_ID) Long userId) {
         log.info("Получен запрос 'Get /requests/{requestId}'");
         return itemRequestService.getRequestById(userId, requestId);
     }
