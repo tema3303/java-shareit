@@ -49,7 +49,7 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public Collection<ItemDto> searchItem(@RequestHeader(value = USER_ID) Long userId, @RequestParam(name = "text") String text) {
+    public Collection<ItemDto> searchItem(@RequestParam(name = "text") String text, @RequestHeader(value = USER_ID) Long userId) {
         log.info("Получен запрос 'GET /items/search/?text='" + text);
         return itemService.searchItem(text, userId);
     }
