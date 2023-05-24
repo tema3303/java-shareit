@@ -39,7 +39,7 @@ public class BookingController {
     }
 
     @GetMapping("/{bookingId}")
-    public ResponseEntity<Object> getBookingById(@RequestHeader("X-Sharer-User-Id") long userId,
+    public ResponseEntity<Object> getBookingById(@RequestHeader(value = USER_ID) long userId,
                                                  @PathVariable Long bookingId) {
         log.info("Get booking {}, userId={}", bookingId, userId);
         return bookingClient.getBookingById(userId, bookingId);
